@@ -6,15 +6,27 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.util.ArrayList;
 
 public class ExempleFitxers {
 
     public static void main(String[] args) {
-        if (args.length == 1) {
+        ArrayList<String> output= new ArrayList<String>();
+        String content = "";
+        if (args.length == 2) {
             Path dir = Paths.get(args[0]);
+            String prefix = args[1];
             System.out.println("Fitxers del directori " + dir);
             if (Files.isDirectory(dir)) {
-                showModiMorethen1mb(dir);
+                showStartsWith(dir,prefix,output);
+                for (String nomFitxer:output) {
+                    content = content + nomFitxer +"\n";
+                }
+                try {
+                    Files.write(Paths.get("resultat.txt"),content.getBytes());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else {
                 System.err.println("Ús: java LlistarDirectori <directori>");
             }
@@ -43,6 +55,22 @@ public class ExempleFitxers {
                 }
                 if (Files.isDirectory(fitxer)) {
                     showModiMorethen1mb(fitxer);
+                }
+            }
+        } catch (IOException | DirectoryIteratorException ex) {
+            System.err.println(ex);
+        }
+    }
+
+    private static void showStartsWith(Path dir,String prefix, ArrayList<String> output) {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir);) {
+            for (Path fitxer : stream) {
+                if (String.valueOf(fitxer.getFileName()).startsWith(prefix)) {
+                    output.add(String.valueOf(fitxer.getFileName()));
+                    //System.out.println(fitxer.getFileName());
+                }
+                if (Files.isDirectory(fitxer)) {
+                    showStartsWith(fitxer,prefix,output);
                 }
             }
         } catch (IOException | DirectoryIteratorException ex) {
