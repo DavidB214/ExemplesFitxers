@@ -18,7 +18,7 @@ public class ExempleFitxers {
             String prefix = args[1];
             System.out.println("Fitxers del directori " + dir);
             if (Files.isDirectory(dir)) {
-                showStartsWith(dir,prefix,output);
+                countFiles(dir,prefix,output);
                 for (String nomFitxer:output) {
                     content = content + nomFitxer +"\n";
                 }
@@ -32,6 +32,20 @@ public class ExempleFitxers {
             }
         }
 
+    }
+    private static void countFiles(Path dir,String prefix, ArrayList<String> output) {
+        int i =0;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir);) {
+            for (Path fitxer : stream) {
+                i++;
+                if (Files.isDirectory(fitxer)) {
+                    countFiles(fitxer,prefix,output);
+                }
+            }
+            output.add(dir.getFileName()+" "+i);
+        } catch (IOException | DirectoryIteratorException ex) {
+            System.err.println(ex);
+        }
     }
 
     private static void showModiMorethen1mb(Path dir) {
