@@ -1,24 +1,26 @@
 package net.jaumebalmes.m06.fitxers;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
-import java.time.Instant;
 import java.util.ArrayList;
 
+/**
+ * Este ejemplo de main es un poco mas complejo que el otro porque nos piden mas cosas
+ */
 public class ExempleFitxers {
-
     public static void main(String[] args) {
+        //ArrayList la usamos para guardar los ficheros/directorios que cumplen lo que queremos printar al final
         ArrayList<String> output= new ArrayList<String>();
         String content = "";
+        //Los args son los arguments ( lo que en configuration podemos añadir) primero haz un run y luego saldra Edit configuration
         if (args.length == 2) {
             Path dir = Paths.get(args[0]);
             String prefix = args[1];
             System.out.println("Fitxers del directori " + dir);
             if (Files.isDirectory(dir)) {
-                countFiles(dir,prefix,output);
+                //como antes esto es el metodo al que llamamos
+                countFiles(dir,output);
+                //Este bucle es para printar todos los resultados obtenidos
                 for (String nomFitxer:output) {
                     content = content + nomFitxer +"\n";
                 }
@@ -27,19 +29,18 @@ public class ExempleFitxers {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            } else {
-                System.err.println("Ús: java LlistarDirectori <directori>");
             }
         }
 
     }
-    private static void countFiles(Path dir,String prefix, ArrayList<String> output) {
+    //cuenta los archivos que tiene cada directorio
+    private static void countFiles(Path dir, ArrayList<String> output) {
         int i =0;
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir);) {
             for (Path fitxer : stream) {
                 i++;
                 if (Files.isDirectory(fitxer)) {
-                    countFiles(fitxer,prefix,output);
+                    countFiles(fitxer,output);
                 }
             }
             output.add(dir.getFileName()+" "+i);
@@ -48,34 +49,7 @@ public class ExempleFitxers {
         }
     }
 
-    private static void showModiMorethen1mb(Path dir) {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir);) {
-            for (Path fitxer : stream) {
-                // comprovar si ha estat modificat l'última setmana
-                BasicFileAttributes attributes = Files.readAttributes(fitxer, BasicFileAttributes.class);
-
-                // Instant oneWeekAgo = Instant.now().minusSeconds(7 * 24 * 60 * 60);
-                // FileTime fileModification = attributes.lastModifiedTime();
-                long size= attributes.size();
-                /*
-                File fitxerF= new File(String.valueOf(fitxer.getFileName()));
-                long lenght = fitxerF.length();
-                if (lenght>1000000)
-                */
-
-                if (size>1000000) {
-                    System.out.println(fitxer.getFileName()+" : " +size);
-
-                }
-                if (Files.isDirectory(fitxer)) {
-                    showModiMorethen1mb(fitxer);
-                }
-            }
-        } catch (IOException | DirectoryIteratorException ex) {
-            System.err.println(ex);
-        }
-    }
-
+    //muestra los que empiezan por...
     private static void showStartsWith(Path dir,String prefix, ArrayList<String> output) {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir);) {
             for (Path fitxer : stream) {
@@ -85,27 +59,6 @@ public class ExempleFitxers {
                 }
                 if (Files.isDirectory(fitxer)) {
                     showStartsWith(fitxer,prefix,output);
-                }
-            }
-        } catch (IOException | DirectoryIteratorException ex) {
-            System.err.println(ex);
-        }
-    }
-
-    private static void showModifiedLastWeek(Path dir) {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir);) {
-            for (Path fitxer : stream) {
-                // comprovar si ha estat modificat l'última setmana
-                BasicFileAttributes attributes = Files.readAttributes(fitxer, BasicFileAttributes.class);
-
-                Instant oneWeekAgo = Instant.now().minusSeconds(7 * 24 * 60 * 60);
-                FileTime fileModification = attributes.lastModifiedTime();
-
-                if (fileModification.toInstant().isAfter(oneWeekAgo)) {
-                    System.out.println(fitxer.getFileName());
-                    if (Files.isDirectory(fitxer)) {
-                        showModifiedLastWeek(fitxer);
-                    }
                 }
             }
         } catch (IOException | DirectoryIteratorException ex) {
